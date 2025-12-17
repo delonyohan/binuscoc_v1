@@ -1,120 +1,249 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import * as ort from 'onnxruntime-web';
 import { Detection, ViolationType, BoundingBox } from '../types';
 
 const SNAPSHOT_PLACEHOLDER = 'https://picsum.photos/320/240';
-const WEBSOCKET_URL = 'ws://localhost:8000/ws/detect_stream'; // Hypothetical backend WebSocket URL
+// const WEBSOCKET_URL = 'ws://localhost:8000/ws/detect_stream'; // Hypothetical backend WebSocket URL
+const ONNX_MODEL_PATH = '/models/yolov8s.onnx'; // Assuming YOLOv8s ONNX model is available here
+
+export const LiveMonitor: React.FC = () => {
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import * as ort from 'onnxruntime-web';
+import { Detection, ViolationType, BoundingBox } from '../types';
+
+const SNAPSHOT_PLACEHOLDER = 'https://picsum.photos/320/240';
+const ONNX_MODEL_PATH = '/models/yolov8s.onnx'; // Assuming YOLOv8s ONNX model is available here
 
 export const LiveMonitor: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const websocketRef = useRef<WebSocket | null>(null);
+  const [session, setSession] = useState<ort.InferenceSession | null>(null);
+  const [isModelLoading, setIsModelLoading] = useState(true);
   const [isStreamActive, setIsStreamActive] = useState(false);
-  const [isBackendConnected, setIsBackendConnected] = useState(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [recentDetections, setRecentDetections] = useState<Detection[]>([]);
   const [processingFrame, setProcessingFrame] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [useSimulation, setUseSimulation] = useState(false); // New state to toggle simulation
 
-  // WebSocket connection management
-  const connectWebSocket = useCallback(() => {
-    if (websocketRef.current && (websocketRef.current.readyState === WebSocket.OPEN || websocketRef.current.readyState === WebSocket.CONNECTING)) {
-      return; // Already connected or connecting
-    }
+  // Reference for the original video dimensions
+  const videoDimensions = useRef({ width: 0, height: 0 });
 
-    setIsBackendConnected(false);
-    setError(null);
-    console.log("Attempting to connect to WebSocket backend...");
-    try {
-      websocketRef.current = new WebSocket(WEBSOCKET_URL);
-
-      websocketRef.current.onopen = () => {
-        console.log("WebSocket connected.");
-        setIsBackendConnected(true);
-        setError(null);
-        setUseSimulation(false); // Disable simulation on successful connection
-      };
-
-      websocketRef.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data && data.detections) {
-          const newDetections: Detection[] = data.detections.map((d: any) => ({
-            id: Date.now().toString() + Math.random(),
-            timestamp: Date.now(),
-            type: ViolationType[d.type.toUpperCase() as keyof typeof ViolationType] || ViolationType.UNKNOWN,
-            confidence: d.confidence,
-            boundingBox: d.boundingBox,
-          }));
-          setDetections(newDetections);
-          if (newDetections.length > 0) {
-            setRecentDetections(prev => [...newDetections, ...prev].slice(0, 5));
-          }
+  useEffect(() => {
+    const loadModel = async () => {
+      try {
+        setIsModelLoading(true);
+        console.log("Loading ONNX model...");
+        // Check if ONNX model exists
+        const response = await fetch(ONNX_MODEL_PATH);
+        if (!response.ok) {
+            setError(`ONNX model not found at ${ONNX_MODEL_PATH}. Please ensure yolov8s.pt is converted to yolov8s.onnx and placed in public/models/.`);
+            setIsModelLoading(false);
+            return;
         }
-      };
+        const session = await ort.InferenceSession.create(ONNX_MODEL_PATH);
+        setSession(session);
+        console.log("ONNX model loaded successfully.");
+        setIsModelLoading(false);
+        setError(null); // Clear any previous errors
+      } catch (e) {
+        console.error("Failed to load ONNX model:", e);
+        setError("Failed to load ONNX model. Make sure 'yolov8s.onnx' is in 'public/models/'.");
+        setIsModelLoading(false);
+      }
+    };
+    loadModel();
+  }, []); // Run once on component mount
 
-      websocketRef.current.onclose = () => {
-        console.log("WebSocket disconnected.");
-        setIsBackendConnected(false);
-        if (isStreamActive) {
-            setError("Backend disconnected. Falling back to simulation (if active).");
-            setUseSimulation(true); // Fallback to simulation if backend disconnects while streaming
+  const preprocess = useCallback((videoFrame: HTMLVideoElement): ort.Tensor => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // YOLOv8s typically expects 640x640 input
+    const inputShape = [1, 3, 640, 640]; 
+    canvas.width = inputShape[2];
+    canvas.height = inputShape[3];
+
+    ctx?.drawImage(videoFrame, 0, 0, canvas.width, canvas.height);
+    const imageData = ctx?.getImageData(0, 0, canvas.width, canvas.height).data;
+
+    if (!imageData) {
+        throw new Error("Could not get image data from video frame.");
+    }
+
+    const float32Data = new Float32Array(inputShape[1] * inputShape[2] * inputShape[3]);
+    let i = 0; // index for float32Data
+    for (let y = 0; y < canvas.height; y++) {
+        for (let x = 0; x < canvas.width; x++) {
+            // R G B
+            float32Data[i] = imageData[(y * canvas.width + x) * 4] / 255.0; // R
+            float32Data[i + inputShape[2] * inputShape[3]] = imageData[(y * canvas.width + x) * 4 + 1] / 255.0; // G
+            float32Data[i + 2 * inputShape[2] * inputShape[3]] = imageData[(y * canvas.width + x) * 4 + 2] / 255.0; // B
+            i++;
         }
-      };
-
-      websocketRef.current.onerror = (err) => {
-        console.error("WebSocket error:", err);
-        setError("WebSocket connection failed. Falling back to simulation (if active).");
-        setIsBackendConnected(false);
-        setUseSimulation(true); // Fallback to simulation on error
-        websocketRef.current?.close();
-      };
-    } catch (e) {
-      console.error("Failed to create WebSocket:", e);
-      setError("Failed to initialize WebSocket. Falling back to simulation.");
-      setIsBackendConnected(false);
-      setUseSimulation(true); // Fallback to simulation if WebSocket creation fails
     }
-  }, [isStreamActive]);
 
-  const disconnectWebSocket = useCallback(() => {
-    if (websocketRef.current) {
-      websocketRef.current.close();
-      websocketRef.current = null;
+    return new ort.Tensor('float32', float32Data, inputShape);
+}, []);
+
+  const postprocess = useCallback((output: ort.Tensor, videoWidth: number, videoHeight: number): Detection[] => {
+    // This post-processing logic is highly dependent on the exact output format
+    // of your YOLOv8 ONNX model. The following is a common interpretation
+    // for a model outputting detections in a [1, num_boxes, 85] tensor,
+    // where 85 = 4 (bbox) + 1 (confidence) + 80 (class scores for COCO) or fewer for custom.
+    // For YOLOv8, often it's [1, 84, num_boxes]
+    const outputData = output.data as Float32Array;
+    const [numClasses, numBoxes] = [80, output.dims[2]]; // Assuming 80 classes, adjust as needed
+
+    const detections: Detection[] = [];
+    const confThreshold = 0.25; // Confidence threshold
+    const iouThreshold = 0.45;  // IoU threshold for NMS
+
+    // Transpose and flatten the output if necessary, common for YOLOv8 ONNX
+    // Output is typically [1, 84, N], where N is number of anchors/boxes.
+    // We want to iterate N times, each time getting 84 values.
+    // The 84 values are [x, y, w, h, conf, class_0_score, ..., class_N_score]
+    
+    // Assuming output format is [1, 84, num_detections] -> transpose to [1, num_detections, 84] for easier processing
+    const transposedOutput: Float32Array[] = [];
+    for (let i = 0; i < numBoxes; i++) {
+        const boxData: Float32Array = new Float32Array(numClasses + 5);
+        for (let j = 0; j < numClasses + 5; j++) {
+            boxData[j] = outputData[j * numBoxes + i];
+        }
+        transposedOutput.push(boxData);
     }
-    setIsBackendConnected(false);
-    setUseSimulation(true); // Re-enable simulation on manual disconnect
+    
+    const candidates: Detection[] = [];
+    for (const data of transposedOutput) {
+        const [x, y, w, h, objectConfidence, ...classScores] = data;
+        const maxScore = Math.max(...classScores);
+        const classId = classScores.indexOf(maxScore);
+        const confidence = objectConfidence * maxScore; // Combined confidence
+
+        if (confidence > confThreshold) {
+            // Convert center-wh to xyxy
+            const x1 = x - w / 2;
+            const y1 = y - h / 2;
+            const x2 = x + w / 2;
+            const y2 = y + h / 2;
+
+            // Scale bounding box to original video dimensions
+            candidates.push({
+                id: '', // Will be filled later
+                timestamp: Date.now(),
+                type: ViolationType.UNKNOWN, // Will map classId to ViolationType later
+                confidence: confidence,
+                boundingBox: {
+                    x: x1 * (videoWidth / 640),
+                    y: y1 * (videoHeight / 640),
+                    width: (x2 - x1) * (videoWidth / 640),
+                    height: (y2 - y1) * (videoHeight / 640),
+                }
+            });
+        }
+    }
+
+    // Apply Non-Max Suppression
+    const nmsDetections = nonMaxSuppression(candidates, iouThreshold);
+
+    // Map class IDs to ViolationType (This needs to be customized based on your model's classes)
+    const classNames = ["shorts", "sleeveless_top", "opened_foot"]; // Example class names
+    return nmsDetections.map((det, index) => ({
+        ...det,
+        id: Date.now().toString() + index,
+        type: ViolationType[classNames[det.classId as number]?.toUpperCase() as keyof typeof ViolationType] || ViolationType.UNKNOWN,
+    }));
+
   }, []);
 
-  // Frame processing and sending
+  // Simple NMS implementation
+  const nonMaxSuppression = (boxes: Detection[], iouThreshold: number): Detection[] => {
+    if (boxes.length === 0) return [];
+
+    // Sort by confidence
+    boxes.sort((a, b) => b.confidence - a.confidence);
+
+    const suppressed: boolean[] = new Array(boxes.length).fill(false);
+    const result: Detection[] = [];
+
+    for (let i = 0; i < boxes.length; i++) {
+        if (suppressed[i]) continue;
+
+        result.push(boxes[i]);
+
+        for (let j = i + 1; j < boxes.length; j++) {
+            if (suppressed[j]) continue;
+
+            const iou = calculateIoU(boxes[i].boundingBox, boxes[j].boundingBox);
+            if (iou > iouThreshold) {
+                suppressed[j] = true;
+            }
+        }
+    }
+    return result;
+  };
+
+  const calculateIoU = (box1: BoundingBox, box2: BoundingBox): number => {
+    const x1 = Math.max(box1.x, box2.x);
+    const y1 = Math.max(box1.y, box2.y);
+    const x2 = Math.min(box1.x + box1.width, box2.x + box2.width);
+    const y2 = Math.min(box1.y + box1.height, box2.y + box2.height);
+
+    const intersectionWidth = Math.max(0, x2 - x1);
+    const intersectionHeight = Math.max(0, y2 - y1);
+    const intersectionArea = intersectionWidth * intersectionHeight;
+
+    const area1 = box1.width * box1.height;
+    const area2 = box2.width * box2.height;
+
+    const unionArea = area1 + area2 - intersectionArea;
+
+    return unionArea > 0 ? intersectionArea / unionArea : 0;
+  };
+
+  // Frame processing for ONNX inference
   useEffect(() => {
     let animationFrameId: number;
-    const captureFrameAndSend = () => {
-      if (videoRef.current && websocketRef.current?.readyState === WebSocket.OPEN && !processingFrame && isStreamActive && !useSimulation) {
+    const captureFrameAndInfer = async () => {
+      if (videoRef.current && session && !isModelLoading && !processingFrame && isStreamActive && !useSimulation) {
         setProcessingFrame(true);
         const video = videoRef.current;
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const imageData = canvas.toDataURL('image/jpeg', 0.8); // Convert to JPEG base64
-          websocketRef.current.send(imageData);
+        videoDimensions.current = { width: video.videoWidth, height: video.videoHeight };
+
+        try {
+            const inputTensor = preprocess(video);
+            const feeds = { images: inputTensor }; // 'images' should match your model's input name
+            const results = await session.run(feeds);
+            
+            // Assuming the output name is 'output0' for YOLOv8
+            const outputTensor = results.output0; 
+            if (outputTensor) {
+                const newDetections = postprocess(outputTensor, video.videoWidth, video.videoHeight);
+                setDetections(newDetections);
+                if (newDetections.length > 0) {
+                    setRecentDetections(prev => [...newDetections, ...prev].slice(0, 5));
+                }
+            }
+        } catch (e) {
+            console.error("ONNX inference failed:", e);
+            setError("Failed to run ONNX inference.");
+        } finally {
+            setProcessingFrame(false);
         }
-        setProcessingFrame(false);
       }
-      animationFrameId = requestAnimationFrame(captureFrameAndSend);
+      animationFrameId = requestAnimationFrame(captureFrameAndInfer);
     };
 
-    if (isStreamActive && isBackendConnected && !useSimulation) {
-      animationFrameId = requestAnimationFrame(captureFrameAndSend);
+    if (isStreamActive && !isModelLoading && session && !useSimulation) {
+      animationFrameId = requestAnimationFrame(captureFrameAndInfer);
     } else {
       cancelAnimationFrame(animationFrameId);
-      setProcessingFrame(false); // Reset processing state if stream or backend is off
+      setProcessingFrame(false);
     }
 
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isStreamActive, isBackendConnected, processingFrame, useSimulation]);
+  }, [isStreamActive, session, isModelLoading, processingFrame, preprocess, postprocess, useSimulation]);
 
 
   // Simulation logic (retained as fallback)
@@ -177,8 +306,12 @@ export const LiveMonitor: React.FC = () => {
             videoRef.current.srcObject = stream;
             videoRef.current.play();
             setIsStreamActive(true);
-            if (!isBackendConnected) { // If backend isn't connected, start simulation
+            // If model is loading or failed to load, default to simulation if it's the only option
+            if (isModelLoading || !session) {
                 setUseSimulation(true);
+                setError("ONNX model not loaded, starting simulation.");
+            } else {
+                setUseSimulation(false); // Use ONNX if model is ready
             }
         }
     } catch (err) {
@@ -236,28 +369,22 @@ export const LiveMonitor: React.FC = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // Calculate scaling factors
-      const scaleX = canvas.width / drawWidth;
-      const scaleY = canvas.height / drawHeight;
+      // const scaleX = canvas.width / drawWidth;
+      // const scaleY = canvas.height / drawHeight;
 
       detections.forEach(det => {
           const { x, y, width, height } = det.boundingBox;
           
-          // Apply scaling and offsets for accurate drawing on the video feed
-          const scaledX = (x / video.videoWidth) * canvas.width;
-          const scaledY = (y / video.videoHeight) * canvas.height;
-          const scaledWidth = (width / video.videoWidth) * canvas.width;
-          const scaledHeight = (height / video.videoHeight) * canvas.height;
-          
           ctx.strokeStyle = '#ef4444'; 
           ctx.lineWidth = 3;
-          ctx.strokeRect(scaledX, scaledY, scaledWidth, scaledHeight);
+          ctx.strokeRect(x, y, width, height);
 
           ctx.fillStyle = '#ef4444';
-          ctx.fillRect(scaledX, scaledY - 25, scaledWidth + 10, 25);
+          ctx.fillRect(x, y - 25, width + 10, 25);
 
           ctx.fillStyle = 'white';
           ctx.font = 'bold 14px Inter';
-          ctx.fillText(`${det.type} (${(det.confidence * 100).toFixed(0)}%)`, scaledX + 5, scaledY - 8);
+          ctx.fillText(`${det.type} (${(det.confidence * 100).toFixed(0)}%)`, x + 5, y - 8);
       });
   }, [detections]);
 
@@ -290,16 +417,7 @@ export const LiveMonitor: React.FC = () => {
           <p className="text-slate-500 mt-1">Real-time object detection for campus security.</p>
         </div>
         <div className="flex gap-3">
-            <button 
-                onClick={isBackendConnected ? disconnectWebSocket : connectWebSocket}
-                className={`px-5 py-2.5 rounded-lg font-semibold text-white transition-colors duration-200 ${
-                    isBackendConnected 
-                    ? 'bg-blue-600 hover:bg-blue-700' 
-                    : 'bg-gray-500 hover:bg-gray-600'
-                }`}
-            >
-                {isBackendConnected ? 'Backend Connected' : 'Connect Backend'}
-            </button>
+            {/* Backend connection button removed as inference is now local */}
             <button 
                 onClick={isStreamActive ? stopCamera : startCamera}
                 className={`px-5 py-2.5 rounded-lg font-semibold text-white transition-colors duration-200 ${
@@ -312,12 +430,12 @@ export const LiveMonitor: React.FC = () => {
             </button>
              <button 
                 onClick={() => setUseSimulation(prev => !prev)}
-                disabled={isStreamActive && isBackendConnected} // Disable simulation toggle if camera is active AND backend is connected
+                disabled={isStreamActive && (!session || isModelLoading)} // Disable simulation toggle if camera is active AND ONNX is ready
                 className={`px-5 py-2.5 rounded-lg font-semibold text-white transition-colors duration-200 ${
                     useSimulation && isStreamActive
                     ? 'bg-orange-600 hover:bg-orange-700' 
                     : 'bg-gray-400 hover:bg-gray-500'
-                } ${isStreamActive && isBackendConnected ? 'opacity-50 cursor-not-allowed' : ''}`}
+                } ${isStreamActive && (!session || isModelLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
                 {useSimulation && isStreamActive ? 'Simulation Active' : 'Start Simulation'}
             </button>
@@ -328,6 +446,13 @@ export const LiveMonitor: React.FC = () => {
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
           <strong className="font-bold">Error:</strong>
           <span className="block sm:inline ml-2">{error}</span>
+        </div>
+      )}
+
+      {isModelLoading && (
+        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded relative mb-4" role="alert">
+          <strong className="font-bold">Info:</strong>
+          <span className="block sm:inline ml-2">Loading ONNX model... This may take a moment.</span>
         </div>
       )}
 
@@ -368,9 +493,9 @@ export const LiveMonitor: React.FC = () => {
                 </div>
             )}
 
-            {isStreamActive && !isBackendConnected && !useSimulation && (
+            {isStreamActive && (isModelLoading || !session) && !useSimulation && (
                 <div className="absolute inset-0 bg-black bg-opacity-70 flex items-center justify-center text-white text-lg font-semibold">
-                    Backend Disconnected & Simulation Inactive
+                    ONNX Model Not Ready & Simulation Inactive
                 </div>
             )}
             {isStreamActive && useSimulation && (

@@ -24,6 +24,9 @@ export const Dashboard: React.FC = () => {
             <header className="mb-6">
                 <h1 className="text-3xl font-extrabold text-slate-800">Compliance Dashboard</h1>
                 <p className="text-slate-500 mt-2">
+                    Binus Campus Outfit Check (BinusCoC) is an innovative application designed to automatically monitor and ensure compliance with campus dress code policies using advanced object detection. It was built to provide a modern, efficient, and data-driven approach to maintaining a consistent and respectful academic environment, reducing the manual effort involved in monitoring, and providing clear insights into compliance trends.
+                </p>
+                <p className="text-slate-500 mt-2">
                     This dashboard provides an overview of dress code compliance across the campus,
                     utilizing real-time object detection to identify potential violations.
                 </p>
