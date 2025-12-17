@@ -64,9 +64,18 @@ export const LicenseInfo: React.FC = () => {
                     </div>
                 </div>
 
-                 {/* Credits & Tech Stack */}
+                 {/* Contact & Tech Stack */}
                  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-                    <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">Technology Stack & Credits</h2>
+                    <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">Policy Inquiries & Technology Stack</h2>
+                    <div className="mb-4 text-slate-600">
+                        <p>For any inquiries regarding campus policies, please contact Bina Nusantara University directly.</p>
+                        <ul className="list-disc list-inside space-y-1 ml-4 mt-2">
+                            <li><strong>Official Website:</strong> <a href="https://binus.ac.id" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">binus.ac.id</a></li>
+                            <li><strong>General Inquiries Email:</strong> <a href="mailto:binus-info@binus.ac.id" className="text-blue-600 hover:underline">binus-info@binus.ac.id</a></li>
+                            <li><strong>Admissions:</strong> <a href="https://binus.ac.id/admissions/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">binus.ac.id/admissions/</a></li>
+                        </ul>
+                    </div>
+                    <h3 className="font-semibold text-slate-700 mb-3 mt-5">Technology Stack & Credits</h3>
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
                         <div className="p-4 bg-slate-50 rounded-lg">
                             <i className="fab fa-react text-2xl text-blue-500 mb-2"></i>

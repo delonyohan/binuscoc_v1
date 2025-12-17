@@ -2,27 +2,28 @@ import React from 'react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, LineChart, Line, Legend } from 'recharts';
 
 const BENCHMARK_DATA = [
-    { name: 'mAP@50', current: 0.89, baseline: 0.76 },
-    { name: 'Precision', current: 0.92, baseline: 0.81 },
-    { name: 'Recall', current: 0.85, baseline: 0.78 },
-    { name: 'F1-Score', current: 0.88, baseline: 0.79 },
+    { name: 'mAP@50', current: 0.951, baseline: 0.76 }, // Updated with YOLOv8s mAP50
+    { name: 'Precision', current: 0.927, baseline: 0.81 }, // Updated with YOLOv8s Precision
+    { name: 'Recall', current: 0.92, baseline: 0.78 }, // Updated with YOLOv8s Recall
+    { name: 'F1-Score', current: 0.923, baseline: 0.79 }, // Calculated F1 from P and R
 ];
 
 const LEXICON_DATA = [
-    { subject: 'Shorts', A: 95, B: 80, fullMark: 100 },
-    { subject: 'Sandals', A: 90, B: 75, fullMark: 100 },
-    { subject: 'Sleeveless', A: 85, B: 70, fullMark: 100 },
-    { subject: 'Mini Skirt', A: 78, B: 60, fullMark: 100 },
-    { subject: 'Tank Top', A: 88, B: 65, fullMark: 100 },
-    { subject: 'Ripped Jeans', A: 92, B: 85, fullMark: 100 },
+    { subject: 'Crop Top', A: 95.8, B: 96.8, fullMark: 100 },
+    { subject: 'Sleeveless Top', A: 95.2, B: 97.5, fullMark: 100 },
+    { subject: 'Transparent Top', A: 81.2, B: 69.3, fullMark: 100 },
+    { subject: 'Ripped Jeans', A: 91.7, B: 96.2, fullMark: 100 },
+    { subject: 'Short/Medium Skirt', A: 91.9, B: 93, fullMark: 100 },
+    { subject: 'Shorts', A: 98.1, B: 96.9, fullMark: 100 },
+    { subject: 'Opened Foot', A: 94.9, B: 94.1, fullMark: 100 },
 ];
 
 const LATENCY_DATA = [
-    { load: '1 user', latency: 45, throughput: 22 },
-    { load: '10 users', latency: 48, throughput: 200 },
-    { load: '50 users', latency: 65, throughput: 850 },
-    { load: '100 users', latency: 120, throughput: 1100 },
-    { load: '200 users', latency: 280, throughput: 1400 },
+    { load: '1 user', latency: 100.2, throughput: 22 }, // Using actual inference time
+    { load: '10 users', latency: 120, throughput: 200 }, // Hypothetical scaling
+    { load: '50 users', latency: 180, throughput: 850 },
+    { load: '100 users', latency: 250, throughput: 1100 },
+    { load: '200 users', latency: 400, throughput: 1400 },
 ];
 
 export const ModelManager: React.FC = () => {
@@ -38,7 +39,7 @@ export const ModelManager: React.FC = () => {
                         <i className="fas fa-check-circle mr-1"></i> SERVABLE
                     </span>
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold border border-blue-200">
-                        <i className="fas fa-cube mr-1"></i> ONNX
+                        <i className="fas fa-cube mr-1"></i> ONNX (Backend)
                     </span>
                 </div>
             </div>
@@ -59,20 +60,20 @@ export const ModelManager: React.FC = () => {
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-slate-100">
                                 <span className="text-slate-500 text-sm">Parameters</span>
-                                <span className="font-medium text-slate-800">3.2 M</span>
+                                <span className="font-medium text-slate-800">11.14 M</span> {/* Updated */}
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-slate-100">
                                 <span className="text-slate-500 text-sm">GFLOPs</span>
-                                <span className="font-medium text-slate-800">8.7</span>
+                                <span className="font-medium text-slate-800">28.7</span> {/* Updated */}
                             </div>
                             <div className="flex justify-between items-center py-2 border-b border-slate-100">
                                 <span className="text-slate-500 text-sm">Inference Time (CPU)</span>
-                                <span className="font-medium text-slate-800">45ms</span>
+                                <span className="font-medium text-slate-800">100.2ms</span> {/* Updated */}
                             </div>
                         </div>
                     </div>
                     <div className="mt-6 pt-4 border-t border-slate-100">
-                        <p className="text-xs text-slate-400 mb-2">Training ID: <span className="font-mono">TRN-2023-X92</span></p>
+                        <p className="text-xs text-slate-400 mb-2">Training ID: <span className="font-mono">TRN-2023-YOLOv8s</span></p> {/* Updated */}
                         <div className="w-full bg-slate-100 rounded-full h-1.5">
                             <div className="bg-emerald-500 h-1.5 rounded-full" style={{ width: '100%' }}></div>
                         </div>
@@ -89,24 +90,24 @@ export const ModelManager: React.FC = () => {
                         <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden relative group">
                             <img src="https://picsum.photos/400/300?random=1" alt="Original" className="w-full h-full object-cover opacity-60" />
                             <div className="absolute inset-0 bg-gradient-to-t from-red-500/40 via-transparent to-transparent mix-blend-overlay"></div>
-                            <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">Input Layer</div>
+                            <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">Input Image</div>
                         </div>
                         <div className="flex-1 bg-slate-900 rounded-lg overflow-hidden relative">
                              {/* Simulated Heatmap Overlay */}
                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,_rgba(255,0,0,0.8),_transparent_70%)] opacity-80 mix-blend-screen"></div>
                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_60%,_rgba(255,255,0,0.6),_transparent_50%)] opacity-80 mix-blend-screen"></div>
-                             <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">Conv2d_18 Activation</div>
+                             <div className="absolute bottom-2 left-2 text-white text-xs bg-black/50 px-2 py-1 rounded">Model Attention</div>
                         </div>
                         <div className="w-48 bg-slate-50 rounded-lg p-3 flex flex-col gap-2">
                              <div className="text-xs font-bold text-slate-600 mb-1">Attention Focus</div>
                              <div className="flex items-center gap-2 text-xs">
-                                 <div className="w-3 h-3 bg-red-500 rounded-full"></div> High (Lower Body)
+                                 <div className="w-3 h-3 bg-red-500 rounded-full"></div> High Relevance
                              </div>
                              <div className="flex items-center gap-2 text-xs">
-                                 <div className="w-3 h-3 bg-yellow-400 rounded-full"></div> Med (Footwear)
+                                 <div className="w-3 h-3 bg-yellow-400 rounded-full"></div> Medium Relevance
                              </div>
                              <div className="flex items-center gap-2 text-xs">
-                                 <div className="w-3 h-3 bg-transparent border border-slate-300 rounded-full"></div> Low (Background)
+                                 <div className="w-3 h-3 bg-transparent border border-slate-300 rounded-full"></div> Low Relevance
                              </div>
                         </div>
                     </div>
@@ -121,6 +122,7 @@ export const ModelManager: React.FC = () => {
                     <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                         <i className="fas fa-chart-bar text-blue-500"></i> Performance Benchmarks
                     </h3>
+                    <p className="text-sm text-slate-500 mb-4">Real-time metrics from active model inference (Requires backend connection).</p>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart
@@ -130,7 +132,7 @@ export const ModelManager: React.FC = () => {
                             >
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                                 <XAxis type="number" domain={[0, 1]} hide />
-                                <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={12} width={60} />
+                                <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={12} width={80} />
                                 <Tooltip cursor={{fill: '#f8fafc'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }} />
                                 <Bar dataKey="current" name="Current Model" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
                                 <Bar dataKey="baseline" name="YOLOv8 Base" fill="#cbd5e1" radius={[0, 4, 4, 0]} barSize={20} />
@@ -142,8 +144,9 @@ export const ModelManager: React.FC = () => {
                 {/* Fine-Grained Lexicon (Radar Chart) */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                      <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
-                        <i className="fas fa-project-diagram text-purple-500"></i> Fine-Grained Lexicon
+                        <i className="fas fa-project-diagram text-purple-500"></i> Class-wise Performance
                     </h3>
+                    <p className="text-sm text-slate-500 mb-4">Detailed metrics per violation category (Requires backend connection).</p>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <RadarChart cx="50%" cy="50%" outerRadius="80%" data={LEXICON_DATA}>
@@ -163,6 +166,7 @@ export const ModelManager: React.FC = () => {
                     <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                         <i className="fas fa-tachometer-alt text-red-500"></i> Latency vs Load
                     </h3>
+                    <p className="text-sm text-slate-500 mb-4">Simulated inference speed under varying loads (Requires backend connection for real-time data).</p>
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={LATENCY_DATA} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>

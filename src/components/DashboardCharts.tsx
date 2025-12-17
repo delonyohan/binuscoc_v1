@@ -48,8 +48,8 @@ export const TrendChart: React.FC<DashboardChartsProps> = ({ data }) => {
             <Legend wrapperStyle={{ paddingTop: '10px' }} />
             <Brush dataKey="date" height={30} stroke="#cbd5e1" tickFormatter={() => ''} />
             <Bar dataKey="shorts" name="Shorts" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="sandals" name="Sandals" fill="#ef4444" radius={[4, 4, 0, 0]} />
-            <Bar dataKey="sleeveless" name="Sleeveless" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="sleeveless_top" name="Sleeveless Top" fill="#ef4444" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="opened_foot" name="Opened Foot" fill="#f59e0b" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -59,13 +59,13 @@ export const TrendChart: React.FC<DashboardChartsProps> = ({ data }) => {
 
 export const DistributionChart: React.FC<DashboardChartsProps> = ({ data }) => {
     const totalShorts = data.reduce((acc, cur) => acc + cur.shorts, 0);
-    const totalSandals = data.reduce((acc, cur) => acc + cur.sandals, 0);
-    const totalSleeveless = data.reduce((acc, cur) => acc + cur.sleeveless, 0);
+    const totalSleevelessTop = data.reduce((acc, cur) => acc + cur.sleeveless_top, 0);
+    const totalOpenedFoot = data.reduce((acc, cur) => acc + cur.opened_foot, 0);
 
     const pieData = [
         { name: 'Shorts', value: totalShorts },
-        { name: 'Sandals', value: totalSandals },
-        { name: 'Sleeveless', value: totalSleeveless },
+        { name: 'Sleeveless Top', value: totalSleevelessTop },
+        { name: 'Opened Foot', value: totalOpenedFoot },
     ];
 
     return (
