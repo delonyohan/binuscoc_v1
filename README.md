@@ -1,4 +1,4 @@
-# Binuscoc - Campus Dress Code Enforcement
+# BINUSCOC - Campus Outfit Check
 
 ## Overview
 

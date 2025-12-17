@@ -11,22 +11,16 @@ import io
 
 app = FastAPI()
 
-# Path to your YOLOv8 PyTorch model
-# Adjust this path if your 'public/models' directory is not relative to the backend script
 MODEL_PATH = "public/models/yolov8s.pt"
 
-# Load a model
-# It's recommended to load the model once when the application starts
-# and reuse it for all incoming requests.
 try:
     model = YOLO(MODEL_PATH)
     print(f"YOLOv8 model loaded successfully from {MODEL_PATH}")
 except Exception as e:
     print(f"Error loading YOLOv8 model from {MODEL_PATH}: {e}")
-    model = None # Set model to None if loading fails
+    model = None
 
-# Frontend expects these class names to map to ViolationType
-CLASS_NAMES = ["shorts", "sleeveless_top", "opened_foot"] # Customize based on your model's classes
+CLASS_NAMES = ["shorts", "sleeveless_top", "opened_foot"]
 
 @app.get("/")
 async def get():
@@ -44,19 +38,16 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            # Receive image frame as bytes (Blob from frontend)
             data = await websocket.receive_bytes()
             
-            # Convert bytes to numpy array (image)
             nparr = np.frombuffer(data, np.uint8)
-            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR) # Decode as color image
+            img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
 
             if img is None:
                 print("Failed to decode image.")
                 continue
 
-            # Perform inference
-            results = model(img) # Predict on image
+            results = model(img)
             
             detections_for_frontend = []
             for r in results:
@@ -65,10 +56,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     confidence = float(conf)
                     class_id = int(cls)
 
-                    # Map class_id to class_name as expected by frontend
                     class_name = CLASS_NAMES[class_id] if class_id < len(CLASS_NAMES) else "UNKNOWN"
 
-                    # Convert bounding box to frontend's expected format (x, y, width, height)
                     bbox = {
                         "x": x1,
                         "y": y1,
@@ -77,14 +66,13 @@ async def websocket_endpoint(websocket: WebSocket):
                     }
 
                     detections_for_frontend.append({
-                        "id": str(np.random.randint(0, 1000000)), # Simple unique ID
-                        "timestamp": int(cv2.getTickCount() / cv2.getTickFrequency() * 1000), # Current time in ms
+                        "id": str(np.random.randint(0, 1000000)),
+                        "timestamp": int(cv2.getTickCount() / cv2.getTickFrequency() * 1000),
                         "type": class_name,
                         "confidence": confidence,
                         "boundingBox": bbox,
                     })
 
-            # Send detections back to frontend
             await websocket.send_json({"detections": detections_for_frontend})
 
     except WebSocketDisconnect:

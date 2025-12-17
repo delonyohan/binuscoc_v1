@@ -9,7 +9,6 @@ export const PolicyChat: React.FC = () => {
             </header>
 
             <div className="space-y-8">
-                {/* Dress Code Policy */}
                 <section className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
                     <h2 className="text-2xl font-bold text-slate-700 mb-4 flex items-center gap-3">
                         <i className="fas fa-tshirt text-blue-500"></i> Dress Code Policy
@@ -30,7 +29,6 @@ export const PolicyChat: React.FC = () => {
                     </p>
                 </section>
 
-                {/* General Campus Regulations */}
                 <section className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
                     <h2 className="text-2xl font-bold text-slate-700 mb-4 flex items-center gap-3">
                         <i className="fas fa-university text-emerald-500"></i> General Campus Regulations
@@ -51,7 +49,6 @@ export const PolicyChat: React.FC = () => {
                     </p>
                 </section>
 
-                {/* Contact for Policy Inquiries */}
                 <section className="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
                     <h2 className="text-2xl font-bold text-slate-700 mb-4 flex items-center gap-3">
                         <i className="fas fa-question-circle text-purple-500"></i> Policy Inquiries

@@ -13,18 +13,16 @@ const MOCK_DATA: DailyStat[] = [
 ];
 
 export const Dashboard: React.FC = () => {
-    // In a real application, these would be fetched from a backend service
-    // and would dynamically update based on live detections.
     const totalDetections = 0;
     const violationsToday = 0;
-    const complianceRate = 100; // Starting at 100% since no violations are detected yet
+    const complianceRate = 100;
 
     return (
         <div className="p-6 max-w-7xl mx-auto space-y-6">
             <header className="mb-6">
                 <h1 className="text-3xl font-extrabold text-slate-800">Compliance Dashboard</h1>
                 <p className="text-slate-500 mt-2">
-                    Binus Campus Outfit Check (BinusCoC) is an innovative application designed to automatically monitor and ensure compliance with campus dress code policies using advanced object detection. It was built to provide a modern, efficient, and data-driven approach to maintaining a consistent and respectful academic environment, reducing the manual effort involved in monitoring, and providing clear insights into compliance trends.
+                    Binus Campus Outfit Check (BinusCoC) is an innovative application designed with a focus on delivering a superior user interface and an intuitive user experience. It automatically monitors and ensures compliance with campus dress code policies using advanced object detection. This modern, efficient, and data-driven approach maintains a consistent and respectful academic environment, significantly reducing manual effort and providing clear, actionable insights into compliance trends.
                 </p>
                 <p className="text-slate-500 mt-2">
                     This dashboard provides an overview of dress code compliance across the campus,
@@ -32,7 +30,6 @@ export const Dashboard: React.FC = () => {
                 </p>
             </header>
 
-            {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <div className="flex items-center gap-4">
@@ -80,7 +77,6 @@ export const Dashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <TrendChart data={MOCK_DATA} />
                 <DistributionChart data={MOCK_DATA} />

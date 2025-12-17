@@ -1,30 +1,24 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-// import * as ort from 'onnxruntime-web'; // No longer needed for client-side ONNX inference
 import { Detection, ViolationType, BoundingBox } from '../types';
 
 const SNAPSHOT_PLACEHOLDER = 'https://picsum.photos/320/240';
-const WEBSOCKET_URL = 'ws://localhost:8000/ws/detect_stream'; // Backend WebSocket URL for inference
+const WEBSOCKET_URL = 'ws://localhost:8000/ws/detect_stream';
 
 export const LiveMonitor: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [ws, setWs] = useState<WebSocket | null>(null); // WebSocket connection state
+  const [ws, setWs] = useState<WebSocket | null>(null);
   const [isWebSocketConnected, setIsWebSocketConnected] = useState(false);
   const [isStreamActive, setIsStreamActive] = useState(false);
   const [detections, setDetections] = useState<Detection[]>([]);
   const [recentDetections, setRecentDetections] = useState<Detection[]>([]);
   const [processingFrame, setProcessingFrame] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [useSimulation, setUseSimulation] = useState(false); // State to toggle simulation
+  const [useSimulation, setUseSimulation] = useState(false);
 
-  // Reference for the original video dimensions
   const videoDimensions = useRef({ width: 0, height: 0 });
 
-  // --------------------------------------------------------------------------------------
-  // WebSocket Connection Management
-  // --------------------------------------------------------------------------------------
   useEffect(() => {
-    // Attempt to connect to WebSocket on component mount
     const connectWebSocket = () => {
       console.log("Attempting to connect to WebSocket at:", WEBSOCKET_URL);
       const newWs = new WebSocket(WEBSOCKET_URL);
@@ -52,16 +46,16 @@ export const LiveMonitor: React.FC = () => {
           console.error("Error parsing WebSocket message:", e);
           setError("Failed to parse detection data from server.");
         } finally {
-            setProcessingFrame(false); // Frame processing complete after receiving response
+            setProcessingFrame(false);
         }
       };
 
       newWs.onclose = () => {
         console.log('WebSocket disconnected');
         setIsWebSocketConnected(false);
-        if (isStreamActive) { // Only attempt to reconnect if stream was active
+        if (isStreamActive) {
             setError("WebSocket disconnected. Attempting to reconnect...");
-            setTimeout(connectWebSocket, 3000); // Attempt to reconnect after 3 seconds
+            setTimeout(connectWebSocket, 3000);
         } else {
             setError("WebSocket disconnected. Start camera to reconnect.");
         }
@@ -78,17 +72,13 @@ export const LiveMonitor: React.FC = () => {
 
     connectWebSocket();
 
-    // Cleanup on component unmount
     return () => {
       if (ws) {
         ws.close();
       }
     };
-  }, [isStreamActive]); // Reconnect logic might depend on isStreamActive, so include it
+  }, [isStreamActive]); 
 
-  // --------------------------------------------------------------------------------------
-  // Frame Sending Logic
-  // --------------------------------------------------------------------------------------
   const sendFrameToBackend = useCallback((videoFrame: HTMLVideoElement) => {
     if (!ws || ws.readyState !== WebSocket.OPEN) {
       console.warn("WebSocket not open, cannot send frame.");
@@ -102,31 +92,26 @@ export const LiveMonitor: React.FC = () => {
       return;
     }
 
-    // Set canvas dimensions to match video frame for sending
     canvas.width = videoFrame.videoWidth;
     canvas.height = videoFrame.videoHeight;
 
     ctx.drawImage(videoFrame, 0, 0, canvas.width, canvas.height);
 
-    // Convert canvas content to JPEG and send as base64 string
     canvas.toBlob((blob) => {
       if (blob) {
-        setProcessingFrame(true); // Indicate frame is being processed
-        ws.send(blob); // Send as Blob for potentially better performance
+        setProcessingFrame(true);
+        ws.send(blob);
       }
-    }, 'image/jpeg', 0.8); // Adjust quality as needed
+    }, 'image/jpeg', 0.8);
   }, [ws]);
 
-  // --------------------------------------------------------------------------------------
-  // Video Stream & Inference Loop
-  // --------------------------------------------------------------------------------------
   useEffect(() => {
     let animationFrameId: number;
     const captureFrameAndSend = () => {
       if (videoRef.current && ws && ws.readyState === WebSocket.OPEN && isStreamActive && !useSimulation && !processingFrame) {
         const video = videoRef.current;
         videoDimensions.current = { width: video.videoWidth, height: video.videoHeight };
-        sendFrameToBackend(video); // Send frame to backend for inference
+        sendFrameToBackend(video);
       }
       animationFrameId = requestAnimationFrame(captureFrameAndSend);
     };
@@ -135,14 +120,12 @@ export const LiveMonitor: React.FC = () => {
       animationFrameId = requestAnimationFrame(captureFrameAndSend);
     } else {
       cancelAnimationFrame(animationFrameId);
-      setProcessingFrame(false); // Ensure processing flag is reset if stream stops
+      setProcessingFrame(false);
     }
 
     return () => cancelAnimationFrame(animationFrameId);
   }, [isStreamActive, isWebSocketConnected, useSimulation, processingFrame, sendFrameToBackend]);
 
-
-  // Simulation logic (retained as fallback)
   const simulateDetections = useCallback(() => {
     if (!isStreamActive || !useSimulation || processingFrame) return;
 
@@ -184,13 +167,11 @@ export const LiveMonitor: React.FC = () => {
     if (isStreamActive && useSimulation) {
       interval = window.setInterval(simulateDetections, 1000);
     } else {
-      setDetections([]); // Clear detections when simulation stops
+      setDetections([]);
     }
     return () => clearInterval(interval);
   }, [isStreamActive, useSimulation, simulateDetections]);
 
-
-  // Start Camera
   const startCamera = async () => {
     try {
         setError(null);
@@ -202,12 +183,11 @@ export const LiveMonitor: React.FC = () => {
             videoRef.current.srcObject = stream;
             videoRef.current.play();
             setIsStreamActive(true);
-            // If WebSocket is not connected, default to simulation
             if (!isWebSocketConnected) {
                 setUseSimulation(true);
                 setError("WebSocket not connected, starting simulation. Please ensure backend server is running.");
             } else {
-                setUseSimulation(false); // Use backend if WebSocket is ready
+                setUseSimulation(false);
             }
         }
     } catch (err) {
@@ -225,12 +205,10 @@ export const LiveMonitor: React.FC = () => {
           setDetections([]);
           setRecentDetections([]);
           setProcessingFrame(false);
-          setUseSimulation(false); // Stop simulation when camera stops
+          setUseSimulation(false);
       }
   };
 
-
-  // Draw Bounding Boxes on Canvas
   const drawDetections = useCallback(() => {
       if (!canvasRef.current || !videoRef.current) return;
       
@@ -240,7 +218,6 @@ export const LiveMonitor: React.FC = () => {
       const video = videoRef.current;
       const canvas = canvasRef.current;
 
-      // Ensure canvas matches video size for correct drawing
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       
@@ -262,7 +239,6 @@ export const LiveMonitor: React.FC = () => {
       });
   }, [detections]);
 
-  // Animation Loop for Drawing
   useEffect(() => {
       let animationFrameId: number;
       
@@ -285,24 +261,6 @@ export const LiveMonitor: React.FC = () => {
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/*
-        Frontend (React) - LiveMonitor.tsx
-        
-        This component is configured to send video frames via WebSocket to a backend server
-        for real-time object detection inference.
-
-        Backend Requirements:
-        - A WebSocket server running at ws://localhost:8000/ws/detect_stream (or configured URL).
-        - This server should:
-            1. Accept incoming WebSocket connections.
-            2. Receive image data (e.g., JPEG Blobs) sent from this frontend.
-            3. Load the YOLOv8 PyTorch model (yolov8s.pt) using a library like `ultralytics` or `torch`.
-            4. Perform inference on the received image frames.
-            5. Post-process the detection results (e.g., NMS, scaling bounding boxes).
-            6. Send back detection results as a JSON string over the WebSocket,
-               with the format: { "detections": [ { id: string, timestamp: number, type: string, confidence: number, boundingBox: { x, y, width, height } } ] }.
-               The 'type' field should match the string representation of ViolationType (e.g., "SHORTS", "SLEEVELESS").
-      */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-extrabold text-slate-800">Live Monitoring</h1>
@@ -321,7 +279,7 @@ export const LiveMonitor: React.FC = () => {
             </button>
              <button 
                 onClick={() => setUseSimulation(prev => !prev)}
-                disabled={isStreamActive && isWebSocketConnected} // Disable simulation toggle if camera is active AND WebSocket is connected
+                disabled={isStreamActive && isWebSocketConnected}
                 className={`px-5 py-2.5 rounded-lg font-semibold text-white transition-colors duration-200 ${
                     useSimulation && isStreamActive
                     ? 'bg-orange-600 hover:bg-orange-700' 

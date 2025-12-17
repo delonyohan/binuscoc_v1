@@ -7,7 +7,6 @@ export const LicenseInfo: React.FC = () => {
             <p className="text-slate-500 mb-8">System details, legal information, and credits.</p>
 
             <div className="space-y-6">
-                {/* System Info */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">System Information</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -30,7 +29,6 @@ export const LicenseInfo: React.FC = () => {
                     </div>
                 </div>
 
-                {/* License */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">License</h2>
                     <div className="prose prose-sm text-slate-600">
@@ -64,7 +62,6 @@ export const LicenseInfo: React.FC = () => {
                     </div>
                 </div>
 
-                 {/* Contact & Tech Stack */}
                  <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h2 className="text-lg font-semibold text-slate-800 mb-4 border-b border-slate-100 pb-2">Policy Inquiries & Technology Stack</h2>
                     <div className="mb-4 text-slate-600">

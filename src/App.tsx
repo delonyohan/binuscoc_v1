@@ -49,7 +49,6 @@ const LiveClock: React.FC = () => {
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return (
         <div className="flex h-screen bg-slate-50">
-            {/* Sidebar */}
             <aside className="w-64 bg-slate-900 flex flex-col fixed h-full z-10 shadow-2xl">
                 <div className="p-6">
                     <div className="flex items-center gap-3 text-white">
@@ -71,7 +70,6 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                 </div>
             </aside>
 
-            {/* Main Content */}
             <main className="flex-1 ml-64 overflow-y-auto">
                 {children}
             </main>

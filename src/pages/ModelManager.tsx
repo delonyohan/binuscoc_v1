@@ -18,10 +18,8 @@ export const ModelManager: React.FC = () => {
                 </div>
             </div>
 
-            {/* Top Row: Active Model & Training Results */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 
-                {/* Active Model Info */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 flex flex-col justify-between">
                     <div>
                         <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
@@ -55,7 +53,6 @@ export const ModelManager: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Model Training Results Overview */}
                 <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                      <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                         <i className="fas fa-chart-line text-orange-500"></i> Model Training Results Overview
@@ -73,10 +70,8 @@ export const ModelManager: React.FC = () => {
                 </div>
             </div>
 
-            {/* Bottom Row: Metrics Visualizations */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* Performance Benchmarks Chart */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                         <i className="fas fa-chart-bar text-blue-500"></i> Performance Curves
@@ -89,7 +84,6 @@ export const ModelManager: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Class-wise Performance (Confusion Matrix) */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                      <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                         <i className="fas fa-project-diagram text-purple-500"></i> Confusion Matrix
@@ -100,7 +94,6 @@ export const ModelManager: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Other Metrics */}
                 <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                     <h3 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                         <i className="fas fa-table text-red-500"></i> Additional Metrics
