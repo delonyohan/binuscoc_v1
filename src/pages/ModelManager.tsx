@@ -13,7 +13,7 @@ export const ModelManager: React.FC = () => {
                         <i className="fas fa-check-circle mr-1"></i> SERVABLE
                     </span>
                     <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold border border-blue-200">
-                        <i className="fas fa-cube mr-1"></i> ONNX (Backend)
+                        <i className="fas fa-cube mr-1"></i> PyTorch
                     </span>
                 </div>
             </div>
@@ -82,8 +82,10 @@ export const ModelManager: React.FC = () => {
                         <i className="fas fa-chart-bar text-blue-500"></i> Performance Curves
                     </h3>
                     <p className="text-sm text-slate-500 mb-4">Precision, Recall, and F1-score curves showing model performance.</p>
-                    <div className="h-64">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-64">
                         <img src="/train2/BoxP_curve.png" alt="Precision Curve" className="w-full h-full object-contain" />
+                        <img src="/train2/BoxR_curve.png" alt="Recall Curve" className="w-full h-full object-contain" />
+                        <img src="/train2/BoxF1_curve.png" alt="F1-Score Curve" className="w-full h-full object-contain" />
                     </div>
                 </div>
 
