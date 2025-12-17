@@ -1,0 +1,8 @@
+{
+  "name": "SentinelAI - Dress Code Enforcement",
+  "description": "AI-powered automated dress code violation detection system with real-time monitoring, reporting, and policy assistance.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
