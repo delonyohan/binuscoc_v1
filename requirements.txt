@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+websockets
+ultralytics
+Pillow
+python-multipart # For handling form data, although we'll use raw binary for WebSocket
+opencv-python-headless # For image processing, if needed (ultralytics might handle it)
+numpy # Often a dependency, good to include
