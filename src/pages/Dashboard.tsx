@@ -31,7 +31,7 @@ export const Dashboard: React.FC = () => {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 transition-all duration-200 ease-in-out group hover:translate-y-[-2px] hover:shadow-lg">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-blue-100 text-blue-600 rounded-full">
                             <i className="fas fa-camera text-xl"></i>
@@ -42,7 +42,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 transition-all duration-200 ease-in-out group hover:translate-y-[-2px] hover:shadow-lg">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-red-100 text-red-600 rounded-full">
                             <i className="fas fa-exclamation-circle text-xl"></i>
@@ -53,7 +53,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 transition-all duration-200 ease-in-out group hover:translate-y-[-2px] hover:shadow-lg">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-emerald-100 text-emerald-600 rounded-full">
                             <i className="fas fa-shield-alt text-xl"></i>
@@ -64,7 +64,7 @@ export const Dashboard: React.FC = () => {
                         </div>
                     </div>
                 </div>
-                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200 transition-all duration-200 ease-in-out group hover:translate-y-[-2px] hover:shadow-lg">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-amber-100 text-amber-600 rounded-full">
                             <i className="fas fa-code-branch text-xl"></i>
