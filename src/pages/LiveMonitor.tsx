@@ -7,14 +7,6 @@ const SNAPSHOT_PLACEHOLDER = 'https://picsum.photos/320/240';
 const ONNX_MODEL_PATH = '/models/yolov8s.onnx'; // Assuming YOLOv8s ONNX model is available here
 
 export const LiveMonitor: React.FC = () => {
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import * as ort from 'onnxruntime-web';
-import { Detection, ViolationType, BoundingBox } from '../types';
-
-const SNAPSHOT_PLACEHOLDER = 'https://picsum.photos/320/240';
-const ONNX_MODEL_PATH = '/models/yolov8s.onnx'; // Assuming YOLOv8s ONNX model is available here
-
-export const LiveMonitor: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [session, setSession] = useState<ort.InferenceSession | null>(null);
